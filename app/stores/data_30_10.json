@@ -362,6 +362,7 @@
             ],
             "tags": [
                 "INBOX",
+                "personal",
                 "CATEGORY_UPDATES",
                 "UNREAD"
             ],
@@ -458,8 +459,7 @@
             ],
             "tags": [
                 "INBOX",
-                "IMPORTANT",
-                "personal"
+                "IMPORTANT"
             ],
             "createdDate": "Oct 30, 2015 3:00:59 PM",
             "tasks": [],
@@ -506,8 +506,7 @@
             ],
             "tags": [
                 "INBOX",
-                "IMPORTANT",
-                "personal"
+                "IMPORTANT"
             ],
             "createdDate": "Oct 30, 2015 3:00:59 PM",
             "tasks": [],
@@ -553,7 +552,6 @@
             "tags": [
                 "INBOX",
                 "IMPORTANT",
-                "personal",
                 "UNREAD"
             ],
             "createdDate": "Oct 30, 2015 3:00:59 PM",
@@ -599,7 +597,6 @@
             ],
             "tags": [
                 "INBOX",
-                "personal",
                 "UNREAD"
             ],
             "createdDate": "Oct 30, 2015 3:00:59 PM",
@@ -842,7 +839,7 @@
             "createdDate": "Oct 30, 2015 3:01:01 PM",
             "tasks": [],
             "content": "[B@7f5a1aca",
-            "tags": ["pim"]
+            "tags": ["pim", "personal", "INBOX"]
 
         },
         {
@@ -854,7 +851,7 @@
             ],
             "createdDate": "Oct 30, 2015 3:01:01 PM",
             "tasks": [],
-            "tags": ["NGUI", "uni"],
+            "tags": ["NGUI", "uni", "personal"],
             "content": "[B@74950517"
         },
         {
@@ -866,7 +863,7 @@
             ],
             "createdDate": "Oct 30, 2015 3:01:01 PM",
             "tasks": [],
-            "tags": ["email", "note"],
+            "tags": ["email", "note", "personal"],
             "content": "[B@638164cc"
         }
     ],

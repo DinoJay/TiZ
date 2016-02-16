@@ -76,6 +76,7 @@ var Graph = React.createClass({
     docsByTag.forEach((d, i) => {
       // important
       d.tag = d.key;
+      d.id = d.key;
       d.selected = false;
       d.i = i;
       d.dim = 1;
@@ -86,12 +87,14 @@ var Graph = React.createClass({
       return d;
     });
 
-    console.log("tag data", docsByTag.filter(d => d.values.length > 2));
-    var personal = docsByTag.find(d => d.key === "personal");
+    console.log("tag data", docsByTag.filter(d => d.values.length > 0));
     var inbox = docsByTag.find(d => d.key === "INBOX");
+    var personal = docsByTag.find(d => d.key === "personal");
 
     console.log("personal", personal);
+    console.log("inbox", inbox);
 
+    // console.log("inbox email", inbox.values.find(d => d.id === "1504552ed9258f19"));
     return {
       data: [personal, inbox],
       linkedByIndex: linkedByIndex
@@ -122,8 +125,8 @@ var Graph = React.createClass({
   render: function() {
     return (
       <div id="vis-cont">
-        {/* <svg width={margin.left + width + margin.right} */}
-        {/*     height={margin.top + height + margin.bottom}></svg> */}
+        <svg width={margin.left + width + margin.right}
+            height={margin.top + height + margin.bottom}></svg>
       </div>
     );
   }

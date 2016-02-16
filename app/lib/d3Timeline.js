@@ -150,7 +150,6 @@ function tickTime(node, xScale, yScale) {
     node
       .style("left", d => d.x + "px")
       .style("top", d => d.y + "px");
-
   };
 }
 

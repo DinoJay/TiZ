@@ -6,7 +6,7 @@ export const margin = {
   };
 
 export const width = 1350 - margin.left - margin.right;
-export const height = 800 - margin.top - margin.bottom;
+export const height = 1600 - margin.top - margin.bottom;
 
 export function makeEdges(stack) {
   var edges = [];
