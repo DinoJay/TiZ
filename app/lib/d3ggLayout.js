@@ -39,6 +39,16 @@ Array.prototype.last = function() {
     else return null;
 };
 
+
+var groupPath = function(d) {
+    return "M" +
+      d3.geom.hull(d.values.map(function(i) { return [i.x, i.y]; }))
+        .join("L")
+    + "Z";
+};
+
+var groupFill = function(d, i) { return d3.scale.category10()(i & 3); };
+
 function backgroundArc(radius) {
   return d3.svg.arc()
            .innerRadius(radius)
@@ -68,8 +78,8 @@ function cropLen(string) {
 function collide(data, alpha, padding) {
   var quadtree = d3.geom.quadtree(data);
   return function(d) {
-    var offset = d.selected ? padding + 200 : padding;
-    var r = d.radius + offset,
+    var offset = 0 + padding; //d.selected ? padding + 200 : padding;
+    var r = d.width + offset,
         nx1 = d.x - r,
         nx2 = d.x + r,
         ny1 = d.y - r,
@@ -79,7 +89,7 @@ function collide(data, alpha, padding) {
         var x = d.x - quad.point.x,
             y = d.y - quad.point.y,
             l = Math.sqrt(x * x + y * y),
-            r = d.radius + offset + quad.point.radius;
+            r = d.width + offset + quad.point.width;
 
         if (l < r) {
           l = (l - r) / l * alpha;
@@ -119,11 +129,10 @@ function lineData(d){ var straightLine = d3.svg.line().interpolate("bundle")
   return straightLine(points);
 }
 
-function tick(tagNode, docNode, link) {
+function tick(data, tagNode, docNode, link) {
   return function(e) {
-    // tagNode.data()
-    //   .filter(d => !d.isNb)
-    //   .forEach(collide(tagNode.data(), 0.1, NODE_RAD + LABEL_OFFSET));
+    // data
+    //   .forEach(collide(data, 0.06, -50));
 
     tagNode.each(d => {
       if (d.selected) {
@@ -134,7 +143,23 @@ function tick(tagNode, docNode, link) {
       }
     });
 
+    // d3.select("#vis-cont svg").selectAll(".hull")
+    //     .data(d3.nest()
+    //             .key(d => d.tag)
+    //             .entries(data)
+    //           )
+    //       .attr("d", groupPath)
+    //     .enter().insert("path", "circle")
+    //       .attr("class", "hull")
+    //       .style("fill", groupFill)
+    //       .style("stroke", groupFill)
+    //       .style("stroke-width", 100)
+    //       .style("stroke-linejoin", "round")
+    //       .style("opacity", .2)
+    //       .attr("d", groupPath);
+
     // tagNode.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+
     tagNode
       .style("left", d => d.x + "px")
       .style("top", d => d.y + "px");
@@ -221,20 +246,21 @@ function contextMenu(d, props, state) {
 
 function create(el, props, state) {
 
-  var docData = _.flatten(state.data.map(d => d.values));
+  var docData = _.uniqBy(_.flatten(state.data.map(d => d.values)), "id");
   docData.forEach(d => d.type = "doc");
   var tagData = state.data;
   tagData.forEach(d => d.type = "tag");
-  var data = _.uniqBy(tagData.concat(docData), "id");
+  var allData = _.uniqBy(tagData.concat(docData), "id");
 
   var edges = _.flatten(tagData.map(source => source.values.map(target => {
     return {
       id: source.id + "-" + target.id,
-      source: data.findIndex(d => d.id === source.id),
-      target: data.findIndex(d => d.id === target.id)};
+      source: allData.findIndex(d => d.id === source.id),
+      target: allData.findIndex(d => d.id === target.id)};
   })));
 
-  edges.forEach(l => l.value = edges.filter(e => e.target === l.target).length);
+  edges.forEach(l => l.value = edges.filter(e => e.target === l.target)
+                                    .length);
 
   console.log("edges", edges);
   console.log("edges filter", edges.filter(e => e.value > 1));
@@ -247,7 +273,7 @@ function create(el, props, state) {
   this.force.size([props.width, props.height]);
 
   var tagNode = div.selectAll(".tag")
-    .data(state.data, d => d.id);
+    .data(tagData, d => d.id);
 
   var docNode = div.selectAll(".doc")
     .data(docData, d => d.id);
@@ -301,7 +327,7 @@ function create(el, props, state) {
         // .attr("z-index", (d, i) => -i )
         .append("span")
         .attr("class", "content")
-        .style("background", d => d.tag === "personal" ? "#FF851B" : "#e5f5f9")
+        // .style("background", d => d.tag === "personal" ? "#FF851B" : "#e5f5f9")
         // .style("background", "#FF851B")
         .on("click", d => console.log(d));
         // .call(force.drag);
@@ -343,8 +369,8 @@ function create(el, props, state) {
       .sort(null)
       .padding(0)
       .size([props.width, props.height])
-      .children(function(d) { return d.values; })
-      .value(function(d) { return 20; })
+      .children(d => d.values)
+      .value(d => 20)
       // .radius(400)
       .nodes({values: tagData});
 
@@ -365,9 +391,9 @@ function create(el, props, state) {
 
   link.exit().remove();
 
-  this.force.nodes(data);
+  this.force.nodes(allData);
   this.force.links(edges);
-  this.force.on("tick", tick(tagNode, docNode, link));
+  this.force.on("tick", tick(allData, d3.selectAll("empty"), docNode, link));
   this.force.start();
   // console.log("force nodes", this.force.nodes().map(d => d.id));
   // console.log("force links", this.force.links());
@@ -423,7 +449,7 @@ const d3ggLayout = new function(){
                 // .linkStrength(0)
                 .linkDistance(l => {
                   // var len = l.source.values ? l.source.values.length : 0;
-                  return l.value > 1 ? 500 : 100;
+                  return l.value > 1 ? 500 : 0;
                 });
   return {
     force: force,

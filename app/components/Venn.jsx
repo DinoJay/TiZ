@@ -1,15 +1,8 @@
 import React from "react";
-import d3ggLayout from "../lib/d3ggLayout.js";
+import d3ggLayout from "../lib/d3Venn";
 import _ from "lodash";
 import ReactDOM from "react-dom";
 import d3 from "d3";
-
-import {
-  margin,
-  width,
-  height
-
-} from "../lib/misc.js";
 
 var linkedByIndex = new function() {
   return {
@@ -37,18 +30,17 @@ var linkedByIndex = new function() {
 var Graph = React.createClass({
   getDefaultProps: function() {
     return {
-      width: width,
-      height: height,
-      margin: margin,
-      data: [],
-      path: []
+      width: 600,
+      height: 600,
+      margin: {},
+      data: []
+      // path: []
     };
   },
 
   getInitialState: function() {
 
     var docs = this.props.data.documents;
-
     docs.forEach((d, i) => {
       // important
       d.selected = false;
@@ -127,8 +119,8 @@ var Graph = React.createClass({
   render: function() {
     return (
       <div id="vis-cont">
-        <svg width={margin.left + width + margin.right}
-            height={margin.top + height + margin.bottom}></svg>
+        <svg width={this.props.margin.left + this.props.width + this.props.margin.right}
+            height={this.props.margin.top + this.props.height + this.props.margin.bottom}></svg>
       </div>
     );
   }

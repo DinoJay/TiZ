@@ -9,8 +9,9 @@ import _ from "lodash";
 import BuzzwordStore from "./stores/BuzzwordStore";
 import BuzzwordActions from "./actions/BuzzActions";
 
-import Graph from "./components/Graph";
-import Timeline from "./components/Timeline";
+// import Graph from "./components/Graph";
+import Venn from "./components/Venn";
+// import Timeline from "./components/Timeline";
 
 require("./style/style.less");
 
@@ -39,8 +40,8 @@ const App = React.createClass({
 
   getDefaultProps: function() {
     return {
-      widthTotal: 1400,
-      heightTotal: 1400,
+      widthTotal: 1200,
+      heightTotal: 800,
       margin: {
         left: 0,
         right: 0,
@@ -77,7 +78,7 @@ const App = React.createClass({
       <div>
       {/* <Timeline/> */}
 
-        <Graph
+        <Venn
           width={this.state.width}
           height={this.state.height}
           data={data2}
@@ -102,31 +103,6 @@ const App = React.createClass({
       this.getFlux().actions.addBuzz(this.state.suggestBuzzword);
       this.setState({suggestBuzzword: ""});
     }
-  }
-});
-
-const Word = React.createClass({
-  render: function() {
-    var statusText, statusStyle = {};
-    switch(this.props.word.status) {
-    case "OK":
-      statusText = "";
-      break;
-    case "ADDING":
-      statusText = "adding...";
-      statusStyle = { color: "#ccc" };
-      break;
-    case "ERROR":
-      statusText = "error: " + this.props.word.error;
-      statusStyle = { color: "red" };
-      break;
-    }
-
-    return (
-      <li key={this.props.word.word}>
-        {this.props.word.word} <span style={statusStyle}>{statusText}</span>
-      </li>
-    );
   }
 });
 
