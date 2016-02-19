@@ -27,7 +27,7 @@ var linkedByIndex = new function() {
   };
 };
 
-var Graph = React.createClass({
+var Venn = React.createClass({
   getDefaultProps: function() {
     return {
       width: 600,
@@ -42,7 +42,8 @@ var Graph = React.createClass({
 
     var docs = this.props.data.documents;
     docs.forEach((d, i) => {
-      // important
+      // important[personal, inbox, email, thesis]
+      d.set = d.tags;
       d.selected = false;
       d.i = i;
       d.dim = 1;
@@ -53,44 +54,45 @@ var Graph = React.createClass({
       return d;
     });
 
-    var flatData = _.flatten(docs.map(d => {
-        return d.tags.map(t => {
-          var dCopy = _.cloneDeep(d);
-          dCopy.tag = t;
-          return dCopy;
-        });
-    }));
+    // var flatData = _.flatten(docs.map(d => {
+    //     return d.tags.map(t => {
+    //       var dCopy = _.cloneDeep(d);
+    //       dCopy.tag = t;
+    //       return dCopy;
+    //     });
+    // }));
+    //
+    // var docsByTag = d3.nest()
+    //   .key(d => d.tag)
+    //   .entries(flatData);
+    //
+    // docsByTag.forEach((d, i) => {
+    //   // important
+    //   d.tag = d.key;
+    //   d.id = d.key;
+    //   d.selected = false;
+    //   d.i = i;
+    //   d.dim = 1;
+    //   d.offset = 0;
+    //   d.nbs = [];
+    //   d.isNb = false;
+    //   d.radius = 20;
+    //   return d;
+    // });
 
-    var docsByTag = d3.nest()
-      .key(d => d.tag)
-      .entries(flatData);
+    // console.log("tag data", docsByTag.filter(d => d.values.length > 0));
+    var inbox = docs.find(d => d.tags.indexOf("INBOX"));
+    var personal = docs.find(d => d.tags.indexOf("personal"));
+    var email = docs.find(d => d.tags.indexOf("email"));
+    var thesis = docs.find(d => d.tags.indexOf("Thesis"));
+    var testData = [inbox, personal, email, thesis];
 
-    docsByTag.forEach((d, i) => {
-      // important
-      d.tag = d.key;
-      d.id = d.key;
-      d.selected = false;
-      d.i = i;
-      d.dim = 1;
-      d.offset = 0;
-      d.nbs = [];
-      d.isNb = false;
-      d.radius = 20;
-      return d;
-    });
-
-    console.log("tag data", docsByTag.filter(d => d.values.length > 0));
-    var inbox = docsByTag.find(d => d.key === "INBOX");
-    var personal = docsByTag.find(d => d.key === "personal");
-    var email = docsByTag.find(d => d.key === "email");
-    var thesis = docsByTag.find(d => d.key === "Thesis");
-
-    console.log("personal", personal);
-    console.log("inbox", inbox);
+    console.log("testData", testData);
+    // console.log("inbox", inbox);
 
     // console.log("inbox email", inbox.values.find(d => d.id === "1504552ed9258f19"));
     return {
-      data: [personal, inbox, email, thesis],
+      data: docs,
       linkedByIndex: linkedByIndex
     };
   },
@@ -126,4 +128,4 @@ var Graph = React.createClass({
   }
 });
 
-export default Graph;
+export default Venn;

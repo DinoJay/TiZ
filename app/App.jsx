@@ -40,7 +40,7 @@ const App = React.createClass({
 
   getDefaultProps: function() {
     return {
-      widthTotal: 1200,
+      widthTotal: 1400,
       heightTotal: 800,
       margin: {
         left: 0,

@@ -1,11 +1,11 @@
 export const margin = {
-    left: 40,
-    right: 80,
+    left: 0,
+    right: 0,
     top: 0,
-    bottom: 140
+    bottom: 0
   };
 
-export const width = 1350 - margin.left - margin.right;
+export const width = 2400 - margin.left - margin.right;
 export const height = 800 - margin.top - margin.bottom;
 
 export function makeEdges(stack) {
