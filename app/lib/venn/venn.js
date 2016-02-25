@@ -61,7 +61,6 @@ export default function() {
   }
 
 
-
   function compute(data) {
     var sets = venn.sets(),
         setsValues,

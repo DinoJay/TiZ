@@ -4,12 +4,15 @@ import d3 from "d3";
 import d3MeasureText from "d3-measure-text"; d3MeasureText.d3 = d3;
 // import venn from "./venn/venn.js";
 import fociLayout from "./d3-foci/src/foci.js";
+// import vennForce from "./";
 
 import _ from "lodash";
 
 const D2R = Math.PI / 180;
 
+import { generateData } from "./misc.js";
 
+// console.log("generateData", generateData(10, 120));
 // function position() {
 //   this.style("left", function(d) { return d.x + "px"; })
 //       .style("top", function(d) { return d.y + "px"; })
@@ -112,22 +115,40 @@ function radial(d, radius, alpha, energy, center) {
 //   return straightLine(points);
 // }
 
-function tick(data, tagNode, docNode, link, tagDataDict) {
+function ticker(docNode, width, height) {
 
-  function moveCenter(alpha, energy) {
+  function moveToCenter(alpha, energy) {
       var affectSize = alpha * energy;
       return function(d) {
-          d.x = d.x + (d.center.px - d.x) * affectSize;
-          d.y = d.y + (d.center.py - d.y) * affectSize;
+          d.x = d.x + ((d.center.x - d.width / 2) - d.x) * affectSize;
+          d.y = d.y + ((d.center.y - d.height / 2) - d.y) * affectSize;
       };
   }
+
+  function bindTo(size, maxVal, coord){
+    return Math.max(size, Math.min(maxVal - size, coord));
+  }
+
+
     // Move nodes toward cluster focus.
   return function(e) {
-    docNode.each(moveCenter(e.alpha, 0.5));
+    // docNode
+    //   .each(collide(docNode.data(), e.alpha, 0));
+
+    docNode.each(moveToCenter(e.alpha, 0.5));
     docNode
-      .style("left", d => d.x + "px")
-      .style("top", d => d.y + "px");
+      // TODO: bounding box
+      .style("left", d => bindTo(d.width, width, d.x) + "px")
+      .style("top", d => bindTo(d.height - 100, height, d.y) + "px");
+      // .style("left", d => d.x + "px")
+      // .style("top", d => d.y + "px");
+
+    // docNode.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
+    // docNode
+    //   .attr("cx", function(d) { return d.x; })
+    //   .attr("cy", function(d) { return d.y; });
   };
+
     // data
     //   .forEach(collide(data, 0.06, -50));
 
@@ -157,7 +178,7 @@ function tick(data, tagNode, docNode, link, tagDataDict) {
 
     // tagNode.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
 
-    // tagNode.each(moveCenter(e.alpha));
+    // tagNode.each(moveToCenter(e.alpha));
     // tagNode
     //   .style("left", d => d.x + "px")
     //   .style("top", d => d.y + "px");
@@ -244,22 +265,108 @@ function create(el, props, state) {
 
   var div = d3.select(el);
   var svg = div.select("svg");
-
-  console.log("props.wh", props.width, props.height);
+  var genData = generateData(4, 120);
+  // console.log("genData", genData);
+  // console.log("props.wh", props.width, props.height);
   var foci = fociLayout()
-              .sets(state.data)
-              .size([props.width, props.height])
-              .charge(d => -200 * d.size -300)
-              .linkStrength(0.1)
-              .linkDistance(100)
-              .start();
+                .clusterSize((size) => 1 * size / 2)
+                .sets(state.data)
+                .size([props.width - 100, props.height - 100])
+                .charge(d => -800 * d.size -700)
+                .linkStrength(0.5)
+                .linkDistance(50)
+                .startForce();
 
-  console.log("foci sets", foci.sets());
+
+  // console.log("foci sets", foci.sets());
   var docData = foci.data();
-  console.log("docData", docData);
+  console.log("foci sets", foci.sets().entries());
 
   var docNode = div.selectAll(".doc")
     .data(docData, d => d.id);
+
+  // var vennArea = svg.selectAll("g.venn-area")
+  //     .data(foci.sets().values(), function(d) {
+  //       return d.__key__;
+  //     });
+  //
+  // var vennEnter = vennArea.enter()
+  //   .append("g")
+  //   .attr("class", function(d) {
+  //     return "venn-area venn-" +
+  //       (d.sets.length == 1 ? "circle" : "intersection");
+  //   })
+  //   .attr("fill", function() {
+  //     return "red"; //colors(i)
+  //   });
+  //
+  // vennEnter.append("path")
+  //   .attr("class", "venn-area-path");
+  //
+  // vennEnter.append("circle")
+  //   .attr("class", "inner")
+  //   .attr("fill", "grey");
+  //
+  // vennEnter.append("text")
+  //   .attr("class", "label")
+  //   .attr("text-anchor", "middle")
+  //   .attr("dy", ".35em")
+  //   .text("SAAS");
+  //
+  // vennArea.selectAll("path.venn-area-path").transition()
+  //   .duration(300)
+  //   .attr("opacity", "0.7")
+  //   .attrTween("d", function(d) {
+  //     return d.d;
+  //   });
+  //
+  // vennArea.selectAll("path.venn-area-path").transition()
+  //       // .duration(isFirstLayout ? 0 : test.duration())
+  //       .attr("opacity", 0.5)
+  //       .attrTween("d", function(d) {
+  //         return d.d;
+  //       });
+  // //we need to rebind data so that parent data propagetes to child nodes (otherwise, updating parent has no effect on child.__data__ property)
+  // vennArea.selectAll("text.label").data(function(d) {
+  //     return [d];
+  //   })
+  //   .text(function(d) {
+  //     return d.__key__;
+  //   })
+  //   .attr("x", function(d) {
+  //     return d.center.x;
+  //   })
+  //   .attr("y", function(d) {
+  //     return d.center.y;
+  //   });
+  //
+  // //we need to rebind data so that parent data propagetes to child nodes (otherwise, updating parent has no effect on child.__data__ property)
+  // vennArea.selectAll("circle.inner").data(function(d) {
+  //     return [d];
+  //   }).transition()
+  //   .duration(10)
+  //   .attr("opacity", 0.7)
+  //   .attr("cx", function(d) {
+  //     return d.center.x;
+  //   })
+  //   .attr("cy", function(d) {
+  //     return d.center.y;
+  //   })
+  //   .attr("r", function(d) {
+  //     return d.innerRadius;
+  //   });
+
+  div.selectAll("tag.span.content")
+     .data(foci.sets().values().filter(d => d.nodes.length > 0))
+     .enter()
+     .insert("div", ":first-child")
+     // .attr("class", "txt")
+     .attr("class", "tag")
+     .append("span")
+     .attr("class", "content")
+     .style("left", d => d.x + "px")
+     .style("top", d => d.y + "px")
+     .text(d => d.sets.join(", "));
 
   docNode
     .enter()
@@ -305,13 +412,43 @@ function create(el, props, state) {
       });
     });
 
+
+
+    // need this so that nodes always on top
+  // var circleContainer = svg.selectAll("g.venn-circle-container")
+  //     .data(foci.sets().values(), function(d) {
+  //       return d.__key__;
+  //     });
+  //
+  // circleContainer.enter()
+  //     .insert("g", ":first-child")
+  //     .attr("class", "venn-circle-container")
+  //     .attr("fill", function(d) {
+  //       return "black";
+  //     });
+
+  // var points = circleContainer.selectAll("circle.node")
+  //     .data(function(d) {
+  //       return d.nodes;
+  //     }, function(d) {
+  //       return d.id;
+  //     });
+  //
+  // points.enter()
+  //       .insert("circle", ":first-child")
+  //       .attr("r", 10)
+  //       .attr("class", "node")
+  //       .attr("fill", "black");
+  //
+  // console.log("points", points);
+
   // docNode.enter()
   //   .append("circle")
   //   .attr("r", 10)
   //   .attr("class", "node");
 
   this.force.nodes(docData);
-  this.force.on("tick", tick(null, null, docNode, null, null));
+  this.force.on("tick", ticker(docNode, props.width, props.height));
   this.force.start();
 
   // tagNode
@@ -354,7 +491,7 @@ function create(el, props, state) {
   //     });
   //   });
   //
-  //   this.force.on("tick", tick(setData, tagNode, null, null));
+  //   this.force.on("tick", ticker(setData, tagNode, null, null));
   //   this.force.start();
 
 
@@ -457,7 +594,7 @@ function create(el, props, state) {
   //
   // this.force.nodes(allData);
   // this.force.links(edges);
-  // this.force.on("tick", tick(allData, d3.selectAll("empty"), docNode, link));
+  // this.force.on("tick", ticker(allData, d3.selectAll("empty"), docNode, link));
   // this.force.start();
   // // console.log("force nodes", this.force.nodes().map(d => d.id));
   // // console.log("force links", this.force.links());
@@ -500,9 +637,8 @@ function update(el, props, state) {
 
 const d3ggLayout = new function(){
   var force = d3.layout.force()
-                .charge(0);
-                // .charge(-1200)
-                // // .gravity(0.2)
+                .charge(- 5)
+                .gravity(0);
                 // .friction(0.9
                 // .linkDistance(l => {
                 //   console.log("link", l);

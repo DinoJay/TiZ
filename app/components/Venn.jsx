@@ -30,8 +30,8 @@ var linkedByIndex = new function() {
 var Venn = React.createClass({
   getDefaultProps: function() {
     return {
-      width: 600,
-      height: 600,
+      // width: 600,
+      // height: 600,
       margin: {},
       data: []
       // path: []
@@ -54,17 +54,22 @@ var Venn = React.createClass({
       return d;
     });
 
-    // var flatData = _.flatten(docs.map(d => {
-    //     return d.tags.map(t => {
-    //       var dCopy = _.cloneDeep(d);
-    //       dCopy.tag = t;
-    //       return dCopy;
-    //     });
-    // }));
+    var flatData = _.flatten(docs.map(d => {
+        return d.tags.map(t => {
+          var dCopy = _.cloneDeep(d);
+          dCopy.tag = t;
+          return dCopy;
+        });
+    }));
     //
-    // var docsByTag = d3.nest()
-    //   .key(d => d.tag)
-    //   .entries(flatData);
+    var docsByTag = d3.nest()
+      .key(d => d.tag)
+      .entries(flatData);
+
+  var keys = docsByTag.filter(d => d.values.length > 7)
+                             .map(d => d.key);
+  var lessDocs = docs.filter(d => d.tags.find(t => keys.indexOf(t)));
+  console.log("lessDocs", lessDocs);
     //
     // docsByTag.forEach((d, i) => {
     //   // important
@@ -81,18 +86,18 @@ var Venn = React.createClass({
     // });
 
     // console.log("tag data", docsByTag.filter(d => d.values.length > 0));
-    var inbox = docs.find(d => d.tags.indexOf("INBOX"));
-    var personal = docs.find(d => d.tags.indexOf("personal"));
-    var email = docs.find(d => d.tags.indexOf("email"));
-    var thesis = docs.find(d => d.tags.indexOf("Thesis"));
-    var testData = [inbox, personal, email, thesis];
+    var inbox = docs.filter(d => d.tags.indexOf("INBOX") !== -1);
+    var personal = docs.filter(d => d.tags.indexOf("personal") !== -1);
+    var email = docs.filter(d => d.tags.indexOf("email") !== -1);
+    var thesis = docs.filter(d => d.tags.indexOf("Thesis") !== -1);
+    var testData = _.uniq(_.flatten([inbox, thesis]), "id");
 
     console.log("testData", testData);
     // console.log("inbox", inbox);
 
     // console.log("inbox email", inbox.values.find(d => d.id === "1504552ed9258f19"));
     return {
-      data: docs,
+      data: testData,
       linkedByIndex: linkedByIndex
     };
   },
@@ -119,6 +124,7 @@ var Venn = React.createClass({
   },
 
   render: function() {
+    // TODO: margin convention
     return (
       <div id="vis-cont">
         <svg width={this.props.margin.left + this.props.width + this.props.margin.right}

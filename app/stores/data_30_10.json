@@ -33,7 +33,7 @@
                 "Pat Helland"
             ],
             "tags": ["management", "architecture"],
-            "createdDate": "Oct 30, 2015 3:00:55 PM",
+            "createdDate": "Oct 30, 2005 3:00:55 PM",
             "tasks": [],
             "content": "In previous papers SC05, SBC+07, some of us predicted the end of \"one size fits all\" as a commercial relational DBMS paradigm. These papers presented reasons and experimental evidence that showed that the major RDBMS vendors can be outperformed by 1-2 orders of magnitude by specialized engines in the data warehouse, stream processing, text, and scientific database markets. Assuming that specialized engines dominate these markets over time, the current relational DBMS code lines will be left with the business data processing (OLTP) market and hybrid markets where more than one kind of capability is required. In this paper we show that current RDBMSs can be beaten by nearly two orders of magnitude in the OLTP market as well. The experimental evidence comes from comparing a new OLTP prototype, H-Store, which we have built at M.I.T. to a popular RDBMS on the standard transactional benchmark, TPC-C. We conclude that the current RDBMS code lines, while attempting to be a \"one size fits all\" solution, in fact, excel at nothing. Hence, they are 25 year old legacy code lines that should be retired in favor of a collection of \"from scratch\" specialized engines. The DBMS vendors (and the research community) should start with a clean sheet of paper and design systems for tomorrow's requirements, not continue to push code lines and architectures designed for yesterday's needs."
         },
@@ -71,7 +71,7 @@
                 "Spreading activation",
                 "User tasks"
             ],
-            "createdDate": "Oct 30, 2015 3:00:55 PM",
+            "createdDate": "Oct 30, 2011 3:00:55 PM",
             "tasks": [],
             "content": "Ontologies, as knowledge engineering tools, allow information to be modelled in ways resembling to those used by the human brain, and may be very useful in the context of personal information management (PIM) and task information management (TIM). This work proposes the use of ontologies as a long-term knowledge store for PIM-related information, and the use of spreading activation over ontologies in order to provide context inference to tools that support TIM. Details on the ontology creation and content are provided, along with a full description of the spreading activation algorithm and its preliminary evaluation. ?? 2009 Elsevier B.V."
         },
@@ -90,7 +90,7 @@
                 "speech processing",
                 "training"
             ],
-            "createdDate": "Oct 30, 2015 3:00:55 PM",
+            "createdDate": "Oct 30, 2013 3:00:55 PM",
             "tasks": [],
             "content": "In this paper we present a presentation training system that observes a presentation rehearsal and provides the speaker with recommendations for improving the delivery of the presentation, such as to speak more slowly and to look at the audience. Our system \"Presentation Sensei\" is equipped with a microphone and camera to analyze a presentation by combining speech and image processing techniques. Based on the results of the analysis, the system gives the speaker instant feedback with respect to the speaking rate, eye contact with the audience, and timing. It also alerts the speaker when some of these indices exceed predefined warning thresholds. After the presentation, the system generates visual summaries of the analysis results for the speaker's self-examinations. Our goal is not to improve the content on a semantic level, but to improve the delivery of it by reducing inappropriate basic behavior patterns. We asked a few test users to try the system and they found it very useful for improving their presentations. We also compared the system's output with the observations of a human evaluator. The result shows that the system successfully detected some inappropriate behavior. The contribution of this work is to introduce a practical recognition-based human training system and to show its feasibility despite the limitations of state-of-the-art speech and video recognition technologies."
         },
@@ -104,15 +104,10 @@
                 "Anthony Tang"
             ],
             "tags": [
-                "all or part of",
                 "displays",
                 "high-resolution displays",
                 "human-centered design",
-                "multiple",
-                "or hard copies of",
-                "permission to make digital",
-                "presentations",
-                "this work for"
+                "presentations"
             ],
             "createdDate": "Oct 30, 2015 3:00:55 PM",
             "tasks": [],
@@ -172,25 +167,13 @@
             "tags": [
                 "Computer architecture",
                 "Internet",
-                "Logic gates",
-                "Protocols",
-                "RESTful principles",
                 "Service oriented architecture",
                 "Web languages",
-                "Web of things architecture",
-                "Web server",
                 "World Wide Web",
                 "actuator networks",
                 "embedded devices",
-                "energy monitoring system",
-                "environmental sensor nodes",
-                "large-scale networks",
                 "resource oriented architecture",
-                "smart things",
-                "software architecture",
-                "tagged objects",
-                "wireless sensor networks",
-                "Thesis"
+                "software architecture"
             ],
             "createdDate": "Oct 30, 2015 3:00:55 PM",
             "tasks": [],
@@ -230,7 +213,8 @@
             "tags": [
                 "GIS",
                 "IS",
-                "Thesis"
+                "Thesis",
+                "INBOX"
             ],
             "content": "The field of GIS (S for Systems, Sciences, Services, and Studies) is at a cross-road in the early 2010s. Aiming to link the multiple visions for the next phase of GIS development, this article suggests that the emerging open GIS should serve as a guiding concept. Contextualized in the broader literature of open science, this article proposes open GIS should include eight dimensions related to data, software, hardware, standards, research, publication, funding, and education. For the GIS community, open GIS offers four exciting opportunities: (1) technology-driven opportunities for addressing challenges posed by the (spatial) big data deluge; (2) application-led opportunities for confronting the problems of a rapidly changing planet; (3) curiosity-inspired, crowd-powered opportunities for the development of an open and geographic citizen science; and (4) education-focused opportunities for implementing the vision of a spatial university. Although there are academic, legal, social/political, and environmental impediments for the practice of open GIS, open GIS will become increasingly important in shaping our research and educational agendas in the future."
         },
@@ -246,8 +230,6 @@
             "tags": [
                 "academia",
                 "deployment",
-                "e-book",
-                "e-reading",
                 "graduate students",
                 "multi-screen computing",
                 "multi-slate",
@@ -314,13 +296,10 @@
                 "Beat Signer"
             ],
             "tags": [
-                "action",
                 "artvis",
                 "artwork explorer",
-                "categories and subject descriptors",
                 "faceted browsing",
-                "information visualisation",
-                "tangible inter-"
+                "information visualisation"
             ],
             "createdDate": "Oct 30, 2015 3:00:55 PM",
             "tasks": [
@@ -340,18 +319,12 @@
             ],
             "tags": [
                 "ArtVis",
-                "Artwork Explorer",
                 "Faceted Browsing",
                 "Information Visualisation",
                 "Tangible Interaction",
-                "action",
-                "artvis",
                 "artwork explorer",
                 "faceted browsing",
-                "figure 1",
-                "graphical artvis user interface",
-                "information visualisation",
-                "tangible inter-"
+                "information visualisation"
             ],
             "createdDate": "Oct 30, 2015 3:00:55 PM",
             "tasks": [],
@@ -477,9 +450,7 @@
                 "Evernote <no-reply@evernote.com>"
             ],
             "tags": [
-                "INBOX",
-                "IMPORTANT",
-                "CATEGORY_UPDATES"
+                "INBOX"
             ],
             "createdDate": "Oct 30, 2015 3:00:59 PM",
             "tasks": [],
@@ -853,7 +824,7 @@
             "authors": [
                 "group5ngui"
             ],
-            "createdDate": "Oct 30, 2015 3:01:01 PM",
+            "createdDate": "Oct 30, 2008 3:01:01 PM",
             "tasks": [],
             "tags": ["NGUI", "uni", "personal"],
             "content": "[B@74950517"

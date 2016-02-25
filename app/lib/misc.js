@@ -1,3 +1,5 @@
+import d3 from "d3";
+
 export const margin = {
     left: 0,
     right: 0,
@@ -7,6 +9,31 @@ export const margin = {
 
 export const width = 2400 - margin.left - margin.right;
 export const height = 800 - margin.top - margin.bottom;
+
+
+export function generateData(setLen, dataLen) {
+  var setChar = "ABCDEFGHIJKLMN",
+      charFn = i => setChar[i],
+      generator = 0;
+
+  return d3.range(dataLen).map(() => {
+    var l = Math.floor((Math.random() * setLen / 3) + 1),
+      set = [],
+      c,
+      j;
+    for (j = -1; ++j < l;) {
+      c = charFn(Math.floor((Math.random() * setLen)));
+      if (set.indexOf(c) == -1) {
+        set.push(c);
+      }
+    }
+    return {
+      set: set,
+      r: 8,
+      id: "node_" + generator++
+    };
+  });
+}
 
 export function makeEdges(stack) {
   var edges = [];
@@ -65,3 +92,41 @@ export var CALENDAR_URL = "https://cdn1.iconfinder.com/data/icons/education-colo
                    +"icons-vol-3/128/145-128.png";
 
 export var NOTE_URL = "evernoteIcon.png";
+
+
+function dw_getScrollOffsets() {
+    var doc = document, w = window;
+    var x, y, docEl;
+
+    if ( typeof w.pageYOffset === "number" ) {
+        x = w.pageXOffset;
+        y = w.pageYOffset;
+    } else {
+        docEl = (doc.compatMode && doc.compatMode === "CSS1Compat")?
+                doc.documentElement: doc.body;
+        x = docEl.scrollLeft;
+        y = docEl.scrollTop;
+    }
+    return {x:x, y:y};
+}
+
+export function xy(el) {
+    var sOff = dw_getScrollOffsets(), left = 0, top = 0, props;
+
+    if ( el.getBoundingClientRect ) {
+        props = el.getBoundingClientRect();
+        left = props.left + sOff.x;
+        top = props.top + sOff.y;
+    } else { // for older browsers
+        do {
+            left += el.offsetLeft;
+            top += el.offsetTop;
+        } while ( (el = el.offsetParent) );
+    }
+    return { x: Math.round(left), y: Math.round(top) };
+}
+
+export function getRandomIntInclusive(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+

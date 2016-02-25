@@ -1,5 +1,5 @@
 import React from "react";
-import d3Timeline from "../lib/d3Timeline.js";
+import d3Timeline from "../lib/d3DocPile";
 import ReactDOM from "react-dom";
 
 var Timeline = React.createClass({
@@ -8,7 +8,8 @@ var Timeline = React.createClass({
       width:  null,
       height: null,
       margin: null,
-      data:   null
+      data:   null,
+      yOffset: null
     };
   },
 
@@ -29,13 +30,9 @@ var Timeline = React.createClass({
   },
 
   render: function() {
-    var tw = this.props.margin.left + this.props.width + this.props.margin.right;
     return (
-      <div id="timeline" className="" style={{height: this.props.height}}>
-        <svg width={tw} height={this.props.height}>
-          <g transform={"translate(" + this.props.margin.left + "," + this.props.margin.top + ")"}> </g>
-        </svg>
-      </div>
+    <div id="docPile" style={{height: this.props.height}}>
+    </div>
     );
   }
 });
