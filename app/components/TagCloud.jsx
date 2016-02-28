@@ -66,7 +66,6 @@ var TagCloud = React.createClass({
         target: data.findIndex(d => d.id === target.id)
       });
     });
-    console.log("dateEdges", dateEdges);
 
 
     return {

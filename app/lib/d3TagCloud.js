@@ -19,7 +19,10 @@ import {getRandomIntInclusive} from "./misc";
 //     return coord;
 // }
 
-function rectCircleColliding(circle,rect){
+
+
+function rectCircleColliding(circle, rect, init){
+
     // var distX = Math.abs(circle.x - rect.x);
     // var distY = Math.abs(circle.y - rect.y);
 
@@ -34,28 +37,37 @@ function rectCircleColliding(circle,rect){
         y: Math.abs (center.y) - rect.height / 2
       };
 
+
+    // if (side.x < circle.r && side.y < circle.r) {
+    //   console.log("side", side);
+    //   // return { bounce: false };
+    // } // inside
+
     if (side.x > circle.r) return { bounce: false };
-    if (side.y >  circle.r) return { bounce: false };
+    if (side.y > circle.r) return { bounce: false };
+
 
     var dx = 0, dy = 0;
     if (side.x <= 0 || side.y <=0) {
       if (Math.abs (side.x) < circle.r && side.y < 0)
       {
-        dx = center.x*side.x < 0 ? -1 : 1;
+        dx = center.x*side.x < 0 ? 1 : -1;
       }
       else if (Math.abs (side.y) < circle.r && side.x < 0)
       {
-        dy = center.y*side.y < 0 ? -1 : 1;
+        dy = center.y*side.y < 0 ? 1 : -1;
       }
-      return { bounce: true, x:dx, y:dy };
+
+      return { bounce: init, x:dx, y:dy };
     }
 
     // circle is near the corner
     var bounce = side.x*side.x + side.y*side.y  < circle.r*circle.r;
     if (!bounce) return { bounce:false };
+
     var norm = Math.sqrt (side.x*side.x+side.y*side.y);
-    dx = center.x < 0 ? -1 : 1;
-    dy = center.y < 0 ? -1 : 1;
+    dx = center.x < 0 ? 1 : -1;
+    dy = center.y < 0 ? 1 : -1;
     return { bounce:true, x: dx*side.x/norm, y: dy*side.y/norm };
 
 }
@@ -167,27 +179,73 @@ function create(el, props, state) {
         // padding      = 40,
         force        = this.force;
 
+
+  var drag = force.drag()
+          .on("dragstart", () => state.drag = true)
+          // .on("drag", d => dragmove(d))
+          .on("dragend", () => state.drag = false);
+
+  state.drag = false;
+  state.init = true;
+
   const aSec = {
     x0: margin.left,
     y0: margin.top,
     x1: width / 2 - diameter / 2,
     y1: height / 2
   };
-  aSec.cx = aSec.x1 - aSec.x0 / 2;
-  aSec.cx = aSec.y1 - aSec.y0 / 2;
+  aSec.cx = (aSec.x1 - aSec.x0) / 2;
+  aSec.cy = (aSec.y1 - aSec.y0) / 2;
 
-  console.log("cx", aSec.cx);
 
   const bSec = {
-    x0: width / 2 + diameter / 2,
+    x0: aSec.x1,
+    y0: margin.top,
+    x1: width / 2 + diameter / 2,
+    y1: height / 2
+  };
+  bSec.cx = width / 2;
+  bSec.cy = (bSec.y1 - bSec.y0) / 2;
+
+  const cSec = {
+    x0: bSec.x1,
     y0: margin.top,
     x1: width - margin.right,
     y1: height / 2
   };
-  aSec.cx = bSec.x1 - bSec.x0 / 2;
-  aSec.cx = bSec.y1 - bSec.y0 / 2;
+  cSec.cx = cSec.x0 + (cSec.x1 - cSec.x0) / 2;
+  cSec.cy = (cSec.y1 - cSec.y0) / 2;
 
-  var axisY = 600;
+
+  const dSec = {
+    x0: margin.left,
+    y0: height / 2,
+    x1: width / 2 - diameter / 2,
+    y1: height - margin.top
+  };
+  dSec.cx = dSec.x0 + (dSec.x1 - dSec.x0) / 2;
+  dSec.cy = dSec.y0 + (dSec.y1 - dSec.y0) / 2;
+
+
+  const eSec = {
+    x0: aSec.x1,
+    y0: height / 2,
+    x1: width / 2 + diameter / 2,
+    y1: height - margin.top
+  };
+  eSec.cx = width / 2;
+  eSec.cy = eSec.y0 + (eSec.y1 - eSec.y0) / 2;
+
+
+  const fSec = {
+    x0: eSec.x1,
+    y0: height / 2,
+    x1: width - margin.right,
+    y1: height - margin.top
+  };
+  fSec.cx = fSec.x0 + (fSec.x1 - fSec.x0) / 2;
+  fSec.cy = fSec.y0 + (fSec.y1 - fSec.y0) / 2;
+
 
   const div = d3.select(el),
         svg = d3.select("#svg"),
@@ -199,13 +257,12 @@ function create(el, props, state) {
   // init positions
   tagData.forEach((d, i) => {
     // var m = i % 7 + 1;
-    d.x = width / 4 - margin.left - margin.right;
-    d.y = height / 4;
+    d.x = width / 2;
+    d.y = height / 8 + Math.random();
 
     // d.y = getRandomIntInclusive(0, height);
     // d.x = Math.cos(i / m * 2 * Math.PI) * 100 + ( width / 4 - margin.left - margin.right) + Math.random();
     // d.y = Math.sin(i / m * 2 * Math.PI) * 100 + ( height / 4 - margin.bottom - margin.top)  + Math.random();
-    console.log("d.x", d.x, "d.y", d.y);
     svg.append("circle")
       .attr("cx", d.x)
       .attr("cy", d.y)
@@ -231,6 +288,57 @@ function create(el, props, state) {
   svg
   // make margins visible
     .call(function() {
+
+      this
+        .append("text")
+        .attr("font-size", 30 + "px")
+        .attr("fill", "black")
+        .attr("x", aSec.cx)
+        .attr("y", aSec.cy)
+        .text("Dim A");
+
+      this
+        .append("text")
+        .attr("font-size", 30 + "px")
+        .attr("fill", "black")
+        .attr("x", bSec.cx)
+        .attr("y", bSec.cy)
+        .text("Dim B");
+
+
+      this
+        .append("text")
+        .attr("font-size", 30 + "px")
+        .attr("fill", "black")
+        .attr("x", cSec.cx)
+        .attr("y", cSec.cy)
+        .text("Dim C");
+
+      this
+        .append("text")
+        .attr("font-size", 30 + "px")
+        .attr("fill", "black")
+        .attr("x", dSec.cx)
+        .attr("y", dSec.cy)
+        .text("Dim D");
+
+      this
+        .append("text")
+        .attr("font-size", 30 + "px")
+        .attr("fill", "black")
+        .attr("x", eSec.cx)
+        .attr("y", eSec.cy)
+        .text("Dim E");
+
+      this
+        .append("text")
+        .attr("font-size", 30 + "px")
+        .attr("fill", "black")
+        .attr("x", fSec.cx)
+        .attr("y", fSec.cy)
+        .text("Dim F");
+
+
       this
         .append("line")
         .attr("class", "testline")
@@ -321,7 +429,11 @@ function create(el, props, state) {
           .attr("class", "word")
           .style("font-size", d => wordScale(d.values.length) + "px")
           .text(d => d.key)
-          .call(force.drag);
+          .call(drag);
+          // .on("dragstart", () => {
+          //                          console.log("state.drag");
+          //                          state.drag = true; })
+          // .on("dragend", () => state.drag = false);
 
         this.each(function(d){
           d.height = Math.ceil(this.getBoundingClientRect().height);
@@ -355,11 +467,9 @@ function create(el, props, state) {
           !d.selected ? d.selected = true : d.selected = false;
           force.start();
 
-          // console.log("d.tags", d.tags);
           var targets = d3.selectAll(".word")
                           .filter(e => d.tags.indexOf(e.key) !== -1);
 
-          // console.log("targets", targets);
 
           // var lines = d3.select("#svg").selectAll(".line")
           //                  .data(targets.data());
@@ -392,7 +502,7 @@ function create(el, props, state) {
 
   var xTimeScale = d3.time.scale()
       .domain(d3.extent(timeData , d => d.date))
-      .rangeRound([aSec.x0, bSec.x1] );
+      .rangeRound([aSec.x0, cSec.x1] );
 
   g
     .attr("class", "x axis")
@@ -444,7 +554,7 @@ function create(el, props, state) {
 
   var xRightScale = d3.scale.ordinal()
     .domain(docData.map(d => d.id))
-    .rangeRoundBands([bSec.x0, bSec.x1 - docWidth]);
+    .rangeRoundBands([cSec.x0, cSec.x1 - docWidth]);
 
   // render layout
   force.on("tick", function(e) {
@@ -458,14 +568,15 @@ function create(el, props, state) {
     tagData.forEach(d => {
       q.visit(collide(d, 10, 1));
       var circle={x:width/2,y:height/2,r:diameter / 2};
-      // var maxHeight = height / 2 - d.height / 2 - 50;
-      // boundMargin(d, width, maxHeight, margin);
-      if (rectCircleColliding(circle, d).bounce) {
-        console.log("point in circle", rectCircleColliding(circle, d));
-        d.x = d.x;
-        d.y = d.y;
+      var collision = rectCircleColliding(circle, d, state.init);
+      if (collision.bounce) {
+        // console.log("point in circle", collision);
+        d.x = d.x + (collision.x * d.x) * e.alpha;
+        d.y = d.y + (collision.y * d.y) * e.alpha;
+        // console.log("d.x", d.x, "d.y", d.y);
       }
-
+      var maxHeight = height / 2 - d.height / 2 - 50;
+      boundMargin(d, width, maxHeight, margin);
         // radial(d, e.alpha, diameter / 2, 1, {x: width / 2, y: height / 2});
     });
 
@@ -512,7 +623,8 @@ function create(el, props, state) {
 
   });
 
-  force.start();
+  force.start()
+       .on("end", () => state.init = false);
 }
 
 
@@ -520,10 +632,9 @@ function create(el, props, state) {
 const d3TagCloud = new function(){
   var force = d3.layout.force()
                 .charge(d => {
-                  // if (d.type === "doc")
-                  //   return d.selected ? (- 5000) : 0;
-                  // else return 0;
-                  return 0;
+                  if (d.type === "doc")
+                    return d.selected ? (- 5000) : 0;
+                  else return 0;
                 })
                 .linkStrength(0)
                 .linkDistance(1000)
