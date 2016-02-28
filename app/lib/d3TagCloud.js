@@ -2,7 +2,84 @@ import d3 from "d3";
 // import _ from "lodash";
 import {getRandomIntInclusive} from "./misc";
 
-function checkBounds(node, width, height, margin) {
+// function pythag(r, b, coord) {
+//     var hyp2 = Math.pow(radius, 2);
+//     // r += nodeBaseRad;
+//
+//     // force use of b coord that exists in circle to avoid sqrt(x<0)
+//     b = Math.min(w - r - strokeWidth, Math.max(r + strokeWidth, b));
+//
+//     var b2 = Math.pow((b - radius), 2),
+//         a = Math.sqrt(hyp2 - b2);
+//
+//     // radius - sqrt(hyp^2 - b^2) < coord < sqrt(hyp^2 - b^2) + radius
+//     coord = Math.max(radius - a + r + strokeWidth,
+//                 Math.min(a + radius - r - strokeWidth, coord));
+//
+//     return coord;
+// }
+
+function rectCircleColliding(circle,rect){
+    // var distX = Math.abs(circle.x - rect.x);
+    // var distY = Math.abs(circle.y - rect.y);
+
+    var center = {
+        x: circle.x - (rect.x),
+        y: circle.y - (rect.y)
+    };
+
+    // check circle position inside the rectangle quadrant
+    var side = {
+        x: Math.abs (center.x) - rect.width / 2,
+        y: Math.abs (center.y) - rect.height / 2
+      };
+
+    if (side.x > circle.r) return { bounce: false };
+    if (side.y >  circle.r) return { bounce: false };
+
+    var dx = 0, dy = 0;
+    if (side.x <= 0 || side.y <=0) {
+      if (Math.abs (side.x) < circle.r && side.y < 0)
+      {
+        dx = center.x*side.x < 0 ? -1 : 1;
+      }
+      else if (Math.abs (side.y) < circle.r && side.x < 0)
+      {
+        dy = center.y*side.y < 0 ? -1 : 1;
+      }
+      return { bounce: true, x:dx, y:dy };
+    }
+
+    // circle is near the corner
+    var bounce = side.x*side.x + side.y*side.y  < circle.r*circle.r;
+    if (!bounce) return { bounce:false };
+    var norm = Math.sqrt (side.x*side.x+side.y*side.y);
+    dx = center.x < 0 ? -1 : 1;
+    dy = center.y < 0 ? -1 : 1;
+    return { bounce:true, x: dx*side.x/norm, y: dy*side.y/norm };
+
+}
+
+
+function radial(d, alpha, radius, energy, center) {
+    const D2R = Math.PI / 180;
+    var angle = Math.atan2(( d.y + d.width) - center.x, ( d.x + d.width) - center.y);
+    console.log("angle", angle);
+    // var currentAngleRadians = angle * D2R;
+    // console.log("radians", currentAngleRadians);
+
+    var radialPoint = {
+        x: center.x + radius * Math.cos(angle),
+        y: center.y + radius * Math.sin(angle)
+    };
+
+    var affectSize = alpha * energy;
+
+    d.x += (radialPoint.x - d.x) * affectSize;
+    d.y += (radialPoint.y - d.y) * affectSize;
+}
+
+function boundMargin(node, width, height, margin) {
   var halfHeight = node.height / 2,
       halfWidth = node.width / 2;
 
@@ -18,6 +95,21 @@ function checkBounds(node, width, height, margin) {
   }
   if (node.y + halfHeight > (height - margin.bottom)) {
           node.y = (height - margin.bottom) - halfHeight;
+  }
+}
+
+function boundY(node, height) {
+  var halfHeight = node.height / 2;
+
+  if (node.y + halfHeight > height ) {
+          node.y = height - halfHeight;
+  }
+}
+
+function boundX(node, width ) {
+  var halfWidth = node.width / 2;
+  if (node.x + halfWidth > width ) {
+          node.x = width - halfWidth;
   }
 }
 
@@ -61,14 +153,41 @@ function collide(node, padding, energy) {
 }
 
 function create(el, props, state) {
-  const allData = state.data,
-        tagData = allData.filter(d => d.type === "tag"),
-        docData = allData.filter(d => d.type === "doc"),
-        edges   = state.edges,
-        height  = props.height,
-        width   = props.width,
-        margin  = props.margin,
-        force   = this.force;
+  const allData      = state.data,
+        tagData      = allData.filter(d => d.type === "tag"),
+        docData      = allData.filter(d => d.type === "doc"),
+        timeData     = allData.filter(d => d.type === "date"),
+        edges        = state.edges,
+        height       = props.height,
+        width        = props.width,
+        margin       = props.margin,
+        diameter     = 300,
+        maxLeftX     = width / 2 - diameter / 2,
+        // minRightX    = width / 2 + diameter / 2,
+        // padding      = 40,
+        force        = this.force;
+
+  const aSec = {
+    x0: margin.left,
+    y0: margin.top,
+    x1: width / 2 - diameter / 2,
+    y1: height / 2
+  };
+  aSec.cx = aSec.x1 - aSec.x0 / 2;
+  aSec.cx = aSec.y1 - aSec.y0 / 2;
+
+  console.log("cx", aSec.cx);
+
+  const bSec = {
+    x0: width / 2 + diameter / 2,
+    y0: margin.top,
+    x1: width - margin.right,
+    y1: height / 2
+  };
+  aSec.cx = bSec.x1 - bSec.x0 / 2;
+  aSec.cx = bSec.y1 - bSec.y0 / 2;
+
+  var axisY = 600;
 
   const div = d3.select(el),
         svg = d3.select("#svg"),
@@ -77,16 +196,117 @@ function create(el, props, state) {
   console.log("props", props);
   console.log("state", state);
 
+  // init positions
   tagData.forEach((d, i) => {
-    // d.x = width / 2;
-    // d.x = Math.cos(i / 1 * 2 * Math.PI) * 300 + width/3 + Math.random();
-    d.y = getRandomIntInclusive(0, height);
+    // var m = i % 7 + 1;
+    d.x = width / 4 - margin.left - margin.right;
+    d.y = height / 4;
+
+    // d.y = getRandomIntInclusive(0, height);
+    // d.x = Math.cos(i / m * 2 * Math.PI) * 100 + ( width / 4 - margin.left - margin.right) + Math.random();
+    // d.y = Math.sin(i / m * 2 * Math.PI) * 100 + ( height / 4 - margin.bottom - margin.top)  + Math.random();
+    console.log("d.x", d.x, "d.y", d.y);
+    svg.append("circle")
+      .attr("cx", d.x)
+      .attr("cy", d.y)
+      .attr("r", 4)
+      .attr("fill", "green");
     //Math.sin(i / 1 * 2 * Math.PI) * 100 + 100 + Math.random();
   });
+  //
+  // var x = Math.cos(1 / 1 * 2 * Math.PI) * 200 + width / 2 + Math.random();
+  // var y = Math.sin(1 / 1 * 2 * Math.PI) * 200 + height / 2   + Math.random();
+  //
+  // svg.append("circle")
+  //   .attr("cx", x)
+  //   .attr("cy", y)
+  //   .attr("r", 8)
+  //   .attr("fill", "red");
 
   force.nodes(allData);
   force.links(edges);
-  force.size([props.width, props.height]);
+  force.size([width, height]);
+
+
+  svg
+  // make margins visible
+    .call(function() {
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", margin.left)
+        .attr("y1", 0)
+        .attr("x2", margin.left)
+        .attr("y2", height);
+
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", width - margin.right)
+        .attr("y1", 0)
+        .attr("x2", width - margin.right)
+        .attr("y2", height);
+
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", 0)
+        .attr("y1", margin.top)
+        .attr("x2", width)
+        .attr("y2", margin.top);
+
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", 0)
+        .attr("y1", height - margin.bottom)
+        .attr("x2", width)
+        .attr("y2", height - margin.bottom);
+
+
+      // circle
+      this
+        .append("circle")
+        .attr("class", "circle")
+        // .style("width",  diameter + "px")
+        // .style("height", diameter + "px")
+        .style("cx", width / 2)
+        .style("cy", height / 2)
+        .style("r", diameter / 2)
+        .style("stroke-width", 1)
+        .style("stroke", "blue")
+        .style("fill", "#eee");
+        // .style("transform", "translate(" + (- diameter / 2) + "px,"
+        //                     + (- diameter / 2) + "px)");
+
+      // center x line
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", 0)
+        .attr("y1", height / 2)
+        .attr("x2", width)
+        .attr("y2", height / 2);
+
+      // circle line
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", width / 2 - diameter / 2)
+        .attr("y1", 0)
+        .attr("x2", width / 2 - diameter / 2)
+        .attr("y2", height);
+
+      // circle line
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", width / 2 + diameter / 2)
+        .attr("y1", 0)
+        .attr("x2", width / 2 + diameter / 2)
+        .attr("y2", height);
+    });
+
 
   var tag = div.selectAll("div.word")
      .data(tagData, d => d.key)
@@ -108,8 +328,11 @@ function create(el, props, state) {
           d.width = Math.ceil(this.getBoundingClientRect().width);
         });
 
-       this
+      this
           .style("transform", d => "translate(" + (-d.width / 2) + "px," + (-d.height/ 2) + "px)");
+
+      // this.on("click", d => console.log("inside circle", ));
+
      });
 
   var doc = div.selectAll(".doc")
@@ -117,69 +340,26 @@ function create(el, props, state) {
 
   doc.enter()
     .insert("div", ":first-child")
+    .attr("class", "doc")
     .call(function() {
 
-    var xScale = d3.scale.ordinal()
-      .domain(docData.map(d => d.id))
-      .rangeRoundBands([props.margin.left, props.width + props.margin.left]);
-
-      // TODO: cleanUp
-      var doc = this
-        .attr("class", "doc")
-        .append("span")
-        .attr("class", "content");
-        // .style("background", "#FF851B")
-        // .call(force.drag);
-        // .call(drag);
-
-      doc.append("div")
-        .append("h4");
-        // .text(d => d.title);
-
-      doc
-        .append("div")
-          .attr("class", "live-example")
-          // .style("z-index", d => d.z )
-        .append("iframe")
-          .attr("class", "link-preview");
-          // .attr("src", "http://www.w3schools.com");
-          //
       this.each(function(d){
-        d.height = this.getBoundingClientRect().height;
-        d.width = this.getBoundingClientRect().width;
+        d.height = Math.ceil(this.getBoundingClientRect().height);
+        d.width = Math.ceil(this.getBoundingClientRect().width);
       });
 
-      this.each(function(d){
-        d.height = this.getBoundingClientRect().height;
-        d.width = this.getBoundingClientRect().width;
-        d.fx = xScale(d.id);
-
-        d.x2 = function() {
-          return this.x + d.width;
-        };
-        d.y2 = function() {
-          return this.y + d.height;
-        };
-        d.centerX = function() {
-          return this.x + d.width / 2;
-        };
-        d.centerY = function() {
-          return this.y + d.height / 2;
-        };
-      });
-
-      doc
+      this
         .on("mouseover", d => {
           if (d.drag) return;
           if (force.alpha() > 0.1) return;
           !d.selected ? d.selected = true : d.selected = false;
           force.start();
 
-          console.log("d.tags", d.tags);
+          // console.log("d.tags", d.tags);
           var targets = d3.selectAll(".word")
                           .filter(e => d.tags.indexOf(e.key) !== -1);
 
-          console.log("targets", targets);
+          // console.log("targets", targets);
 
           // var lines = d3.select("#svg").selectAll(".line")
           //                  .data(targets.data());
@@ -210,14 +390,14 @@ function create(el, props, state) {
         });
   });
 
+  var xTimeScale = d3.time.scale()
+      .domain(d3.extent(timeData , d => d.date))
+      .rangeRound([aSec.x0, bSec.x1] );
 
   g
     .attr("class", "x axis")
-    .attr("transform", "translate(0," + 600 + ")")
+    .attr("transform", "translate(0," + (height - margin.bottom - 100) + ")")
     .call(function() {
-      var xTimeScale = d3.time.scale()
-          .domain(d3.extent(docData , d => new Date(d.createdDate)))
-          .rangeRound([margin.left, width - margin.right] );
 
       var xAxis = d3.svg.axis()
           .scale(xTimeScale);
@@ -231,53 +411,82 @@ function create(el, props, state) {
         .attr("transform", "rotate(90)")
         .style("text-anchor", "start");
 
-
-      this.selectAll(".dot")
-        .data(docData, d => d.id)
-        .enter()
-        .append("circle")
-        .call(function() {
-          this
-            .attr("class", "dot")
-            .attr("r", 3.5)
-            .attr("cx", d => xTimeScale(new Date(d.createdDate)))
-            .attr("cy", 0)
-            .style("fill", "red");
-        });
     });
+
+// TODO: fix height
+    var dot = div.selectAll(".dot")
+      .data(timeData, d => d.id)
+      .enter()
+      .append("div")
+      .call(function() {
+        this.attr("class", "dot")
+        .style("background", "red");
+        this.each(function(d){
+          d.height = Math.ceil(this.getBoundingClientRect().height);
+          d.width = Math.ceil(this.getBoundingClientRect().width);
+        });
+
+        this.style("transform",
+          d => "translate(" + (-d.width / 2) + "px,"
+          + (-d.height / 2) + "px)");
+      });
 
   var link = svg.selectAll(".link")
         .data(edges, d => d.id)
       .enter().append("path")
         .attr("class", "link");
 
+
+  var docWidth = d3.select(".doc").data()[0].width;
+  var xLeftScale = d3.scale.ordinal()
+    .domain(docData.map(d => d.id))
+    .rangeRoundBands([aSec.x0, aSec.x1 - docWidth]);
+
+  var xRightScale = d3.scale.ordinal()
+    .domain(docData.map(d => d.id))
+    .rangeRoundBands([bSec.x0, bSec.x1 - docWidth]);
+
+  // render layout
   force.on("tick", function(e) {
-    // function moveToPos(pos, alpha, energy) {
-    //     var affectSize = alpha * energy;
-    //     return function(d) {
-    //         d.x = d.x + (pos.x - d.x) * affectSize;
-    //         d.y = d.y + (pos.y - d.y) * affectSize;
-    //     };
-    // }
-    // function moveToY(y, alpha, energy) {
-    //     var affectSize = alpha * energy;
-    //     return function(d) {
-    //         d.y = d.y + (y - d.y) * affectSize;
-    //     };
-    // }
+    function moveToPos(d, pos, alpha, energy) {
+        var affectSize = alpha * energy;
+        d.x = d.x + (pos.x - d.x) * affectSize;
+        d.y = d.y + (pos.y - d.y) * affectSize;
+    }
 
     var q = d3.geom.quadtree(tagData);
     tagData.forEach(d => {
       q.visit(collide(d, 10, 1));
-      checkBounds(d, width, 400, margin);
+      var circle={x:width/2,y:height/2,r:diameter / 2};
+      // var maxHeight = height / 2 - d.height / 2 - 50;
+      // boundMargin(d, width, maxHeight, margin);
+      if (rectCircleColliding(circle, d).bounce) {
+        console.log("point in circle", rectCircleColliding(circle, d));
+        d.x = d.x;
+        d.y = d.y;
+      }
+
+        // radial(d, e.alpha, diameter / 2, 1, {x: width / 2, y: height / 2});
     });
 
     // tag.each(moveToPos({x: width/2, y: height / 6 }, e.alpha, eW));
 
-    doc.filter(d => !d.drag).each(d => {
+    doc.each((d, i) => {
+      var x = i % 2 === 0 ? xLeftScale(d.id) : xRightScale(d.id);
+      var y = height / 2  - d.height / 2;
+      moveToPos(d, {x: x, y: y}, e.alpha, 1);
+
+      boundY(d, height / 2 );
+
+      var maxWidth = i % 2 === 0 ? maxLeftX : width - margin.right;
+      boundX(d, maxWidth);
+    });
+
+
+    dot.each(d => {
       var affectSize = e.alpha * 1;
-      d.x += (d.fx - d.x) * affectSize;
-      d.y += (props.height / 2 - d.y) * affectSize;
+      d.x += (xTimeScale(d.date) - d.x) * affectSize;
+      d.y += (height - margin.bottom - 100 - d.y) * affectSize;
     });
 
     tag
@@ -285,6 +494,10 @@ function create(el, props, state) {
       .style("top", d => d.y + "px");
 
     doc
+      .style("left", d => d.x + "px")
+      .style("top", d => d.y + "px");
+
+    dot
       .style("left", d => d.x + "px")
       .style("top", d => d.y + "px");
 
@@ -299,7 +512,7 @@ function create(el, props, state) {
 
   });
 
-  this.force.start();
+  force.start();
 }
 
 
@@ -307,16 +520,17 @@ function create(el, props, state) {
 const d3TagCloud = new function(){
   var force = d3.layout.force()
                 .charge(d => {
-                  if (d.type === "doc")
-                    return d.selected ? (- d.width * 4) : 0;
-                  else return 0;
+                  // if (d.type === "doc")
+                  //   return d.selected ? (- 5000) : 0;
+                  // else return 0;
+                  return 0;
                 })
-                .linkStrength(0.01)
-                .linkDistance(50)
-                .chargeDistance(100)
+                .linkStrength(0)
+                .linkDistance(1000)
+                .chargeDistance(200)
                 .gravity(0)
-                .friction(0.7);
-                // .theta(1);
+                // .friction(0.4);
+                .theta(1);
   return {
     force: force,
     update: null,

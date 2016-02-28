@@ -22,7 +22,7 @@ var TagCloud = React.createClass({
       d.type = "doc";
     });
 
-    var flatData = _.flatten(docs.map(d => {
+    var tagsFlat = _.flatten(docs.map(d => {
         return d.tags.map(t => {
           var dCopy = _.cloneDeep(d);
           dCopy.tag = t;
@@ -32,25 +32,46 @@ var TagCloud = React.createClass({
 
     var tagData = d3.nest()
       .key(d => d.tag)
-      .entries(flatData);
+      .entries(tagsFlat).map(d => {
+                                    d.id = d.key;
+                                    d.type = "tag";
+                                    return d;
+                                  });
 
-    tagData.forEach(d => {
-      d.id = d.key;
-      d.type = "tag";
-    });
+    var timeData = d3.nest()
+      .key(d => d.createdDate)
+      .entries(docs).map(d => {
+                                d.id = d.key;
+                                d.date = new Date(d.key);
+                                console.log("d.date", d);
+                                d.type = "date";
+                                return d;
+                              });
 
-    var data = docs.concat(tagData);
 
-    var edges = _.flatten(tagData.map(source => source.values.map(target => {
+    var data = docs.concat(tagData, timeData);
+
+    var tagEdges = _.flatten(tagData.map(target => target.values.map(source => {
       return {
         id: source.id + "-" + target.id,
         source: data.findIndex(d => d.id === source.id),
         target: data.findIndex(d => d.id === target.id)};
     })));
 
+    var dateEdges = docs.map(source => {
+      var target = timeData.find(d => d.id === source.createdDate);
+      return ({
+        id: source.id + "-" + target.id,
+        source: data.findIndex(d => d.id === source.id),
+        target: data.findIndex(d => d.id === target.id)
+      });
+    });
+    console.log("dateEdges", dateEdges);
+
+
     return {
       data: data,
-      edges: edges
+      edges: tagEdges.concat(dateEdges)
     };
   },
 

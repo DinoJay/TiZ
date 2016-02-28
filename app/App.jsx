@@ -47,7 +47,8 @@ const App = React.createClass({
   render: function() {
     return (
       <div className="cont">
-        <svg id="svg" height={800}></svg>
+      {/* TODO: fix length */}
+        <svg id="svg" height={900}></svg>
         <div className="overlay">
           <TagCloud
             width={this.props.width}

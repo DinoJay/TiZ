@@ -273,7 +273,7 @@ function create(el, props, state) {
                 .sets(state.data)
                 .size([props.width - 100, props.height - 100])
                 .charge(d => -800 * d.size -700)
-                .linkStrength(0.5)
+                .linkStrength(0.05)
                 .linkDistance(50)
                 .startForce();
 
