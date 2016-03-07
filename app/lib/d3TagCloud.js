@@ -1,5 +1,6 @@
 import d3 from "d3";
 // import _ from "lodash";
+import d3MeasureText from "d3-measure-text"; d3MeasureText.d3 = d3;
 import {getRandomIntInclusive} from "./misc";
 
 // function pythag(r, b, coord) {
@@ -72,7 +73,6 @@ function rectCircleColliding(circle, rect, init){
 
 }
 
-
 function radial(d, alpha, radius, energy, center) {
     const D2R = Math.PI / 180;
     var angle = Math.atan2(( d.y + d.width) - center.x, ( d.x + d.width) - center.y);
@@ -91,6 +91,7 @@ function radial(d, alpha, radius, energy, center) {
     d.y += (radialPoint.y - d.y) * affectSize;
 }
 
+
 function boundMargin(node, width, height, margin) {
   var halfHeight = node.height / 2,
       halfWidth = node.width / 2;
@@ -107,6 +108,26 @@ function boundMargin(node, width, height, margin) {
   }
   if (node.y + halfHeight > (height - margin.bottom)) {
           node.y = (height - margin.bottom) - halfHeight;
+  }
+}
+
+
+function boundSec(node, coord) {
+  var halfHeight = node.height / 2,
+      halfWidth = node.width / 2;
+
+  if (node.x - halfWidth < coord.left) {
+          node.x = halfWidth + coord.left;
+  }
+  if (node.x + halfWidth > (coord.right)) {
+          node.x = (coord.right) - halfWidth;
+  }
+
+  if (node.y - halfHeight < coord.top) {
+          node.y = halfHeight + coord.top;
+  }
+  if (node.y + halfHeight > coord.bottom) {
+          node.y = coord.bottom - halfHeight;
   }
 }
 
@@ -185,66 +206,47 @@ function create(el, props, state) {
           // .on("drag", d => dragmove(d))
           .on("dragend", () => state.drag = false);
 
+  // var zoom = d3.behavior.zoom()
+  //             .scaleExtent([1, 10])
+  //             .on("zoom", zoomed);
+  //
+  // function zoomed() {
+  //   console.log("zoom", d3.event);
+  //   var tx = d3.event.translate[0] + "px";
+  //   var ty = d3.event.translate[1] + "px";
+  //   d3.select("#tagCloud")
+  //     .style("transform", "translate(" + tx +"," + ty + ")scale(" + d3.event.scale + ")");
+  // }
+
   state.drag = false;
   state.init = true;
 
-  const aSec = {
-    x0: margin.left,
-    y0: margin.top,
-    x1: width / 2 - diameter / 2,
-    y1: height / 2
+  const upperPanel = {
+    left: margin.left,
+    top: margin.top,
+    right: width - margin.right,
+    bottom: height / 3
   };
-  aSec.cx = (aSec.x1 - aSec.x0) / 2;
-  aSec.cy = (aSec.y1 - aSec.y0) / 2;
+  upperPanel.cx = (upperPanel.right - upperPanel.left) / 2;
+  upperPanel.cy = (upperPanel.bottom - upperPanel.top) / 2;
 
-
-  const bSec = {
-    x0: aSec.x1,
-    y0: margin.top,
-    x1: width / 2 + diameter / 2,
-    y1: height / 2
+  const centerPanel = {
+    left: margin.left,
+    right: width - margin.right,
+    top: upperPanel.bottom,
+    bottom: (height / 2) - 1/6 * height
   };
-  bSec.cx = width / 2;
-  bSec.cy = (bSec.y1 - bSec.y0) / 2;
+  centerPanel.cx = width / 2;
+  centerPanel.cy = height / 2;
 
-  const cSec = {
-    x0: bSec.x1,
-    y0: margin.top,
-    x1: width - margin.right,
-    y1: height / 2
+  const lowerPanel = {
+    left: margin.left,
+    top: centerPanel.bottom,
+    right: width / 2 - diameter / 2,
+    bottom: height - margin.top
   };
-  cSec.cx = cSec.x0 + (cSec.x1 - cSec.x0) / 2;
-  cSec.cy = (cSec.y1 - cSec.y0) / 2;
-
-
-  const dSec = {
-    x0: margin.left,
-    y0: height / 2,
-    x1: width / 2 - diameter / 2,
-    y1: height - margin.top
-  };
-  dSec.cx = dSec.x0 + (dSec.x1 - dSec.x0) / 2;
-  dSec.cy = dSec.y0 + (dSec.y1 - dSec.y0) / 2;
-
-
-  const eSec = {
-    x0: aSec.x1,
-    y0: height / 2,
-    x1: width / 2 + diameter / 2,
-    y1: height - margin.top
-  };
-  eSec.cx = width / 2;
-  eSec.cy = eSec.y0 + (eSec.y1 - eSec.y0) / 2;
-
-
-  const fSec = {
-    x0: eSec.x1,
-    y0: height / 2,
-    x1: width - margin.right,
-    y1: height - margin.top
-  };
-  fSec.cx = fSec.x0 + (fSec.x1 - fSec.x0) / 2;
-  fSec.cy = fSec.y0 + (fSec.y1 - fSec.y0) / 2;
+  lowerPanel.cx = lowerPanel.left + (lowerPanel.right - lowerPanel.left) / 2;
+  lowerPanel.cy = lowerPanel.top + (lowerPanel.bottom - lowerPanel.top) / 2;
 
 
   const div = d3.select(el),
@@ -253,6 +255,8 @@ function create(el, props, state) {
 
   console.log("props", props);
   console.log("state", state);
+
+  // div.call(zoom);
 
   // init positions
   tagData.forEach((d, i) => {
@@ -289,54 +293,56 @@ function create(el, props, state) {
   // make margins visible
     .call(function() {
 
+
+      var dimStrLen = d3MeasureText("Dim X").width;
       this
         .append("text")
         .attr("font-size", 30 + "px")
         .attr("fill", "black")
-        .attr("x", aSec.cx)
-        .attr("y", aSec.cy)
-        .text("Dim A");
+        .attr("x", upperPanel.cx - dimStrLen)
+        .attr("y", upperPanel.cy)
+        .text("upperPanel A");
+
+      // this
+      //   .append("text")
+      //   .attr("font-size", 30 + "px")
+      //   .attr("fill", "black")
+      //   .attr("x", bSec.cx - dimStrLen)
+      //   .attr("y", bSec.cy)
+      //   .text("Dim B");
+
+
+      // this
+      //   .append("text")
+      //   .attr("font-size", 30 + "px")
+      //   .attr("fill", "black")
+      //   .attr("x", cSec.cx - dimStrLen)
+      //   .attr("y", cSec.cy)
+      //   .text("Dim C");
 
       this
         .append("text")
         .attr("font-size", 30 + "px")
         .attr("fill", "black")
-        .attr("x", bSec.cx)
-        .attr("y", bSec.cy)
-        .text("Dim B");
-
-
-      this
-        .append("text")
-        .attr("font-size", 30 + "px")
-        .attr("fill", "black")
-        .attr("x", cSec.cx)
-        .attr("y", cSec.cy)
-        .text("Dim C");
-
-      this
-        .append("text")
-        .attr("font-size", 30 + "px")
-        .attr("fill", "black")
-        .attr("x", dSec.cx)
-        .attr("y", dSec.cy)
+        .attr("x", lowerPanel.cx - dimStrLen)
+        .attr("y", lowerPanel.cy)
         .text("Dim D");
 
-      this
-        .append("text")
-        .attr("font-size", 30 + "px")
-        .attr("fill", "black")
-        .attr("x", eSec.cx)
-        .attr("y", eSec.cy)
-        .text("Dim E");
+      // this
+      //   .append("text")
+      //   .attr("font-size", 30 + "px")
+      //   .attr("fill", "black")
+      //   .attr("x", eSec.cx - dimStrLen)
+      //   .attr("y", eSec.cy)
+      //   .text("Dim E");
 
-      this
-        .append("text")
-        .attr("font-size", 30 + "px")
-        .attr("fill", "black")
-        .attr("x", fSec.cx)
-        .attr("y", fSec.cy)
-        .text("Dim F");
+      // this
+      //   .append("text")
+      //   .attr("font-size", 30 + "px")
+      //   .attr("fill", "black")
+      //   .attr("x", fSec.cx - dimStrLen)
+      //   .attr("y", fSec.cy)
+      //   .text("Dim F");
 
 
       this
@@ -413,6 +419,32 @@ function create(el, props, state) {
         .attr("y1", 0)
         .attr("x2", width / 2 + diameter / 2)
         .attr("y2", height);
+
+      var docAreaString = "paper doc area";
+      this
+        .append("text")
+        .attr("font-size", 30 + "px")
+        .attr("fill", "black")
+        .attr("x", width / 2 - d3MeasureText(docAreaString).width)
+        .attr("y", height / 2)
+        .text("paper doc area");
+
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", centerPanel.left)
+        .attr("y1", centerPanel.top)
+        .attr("x2", centerPanel.right)
+        .attr("y2", centerPanel.top);
+
+      this
+        .append("line")
+        .attr("class", "testline")
+        .attr("x1", centerPanel.left)
+        .attr("y1", centerPanel.bottom)
+        .attr("x2", centerPanel.right)
+        .attr("y2", centerPanel.bottom);
+
     });
 
 
@@ -502,7 +534,7 @@ function create(el, props, state) {
 
   var xTimeScale = d3.time.scale()
       .domain(d3.extent(timeData , d => d.date))
-      .rangeRound([aSec.x0, cSec.x1] );
+      .rangeRound([lowerPanel.left, lowerPanel.right] );
 
   g
     .attr("class", "x axis")
@@ -523,7 +555,7 @@ function create(el, props, state) {
 
     });
 
-// TODO: fix height
+    // TODO: fix height
     var dot = div.selectAll(".dot")
       .data(timeData, d => d.id)
       .enter()
@@ -537,8 +569,7 @@ function create(el, props, state) {
         });
 
         this.style("transform",
-          d => "translate(" + (-d.width / 2) + "px,"
-          + (-d.height / 2) + "px)");
+          d => "translate(" + (-d.width / 2) + "px," + (-d.height / 2) + "px)");
       });
 
   var link = svg.selectAll(".link")
@@ -546,82 +577,87 @@ function create(el, props, state) {
       .enter().append("path")
         .attr("class", "link");
 
-
-  var docWidth = d3.select(".doc").data()[0].width;
-  var xLeftScale = d3.scale.ordinal()
-    .domain(docData.map(d => d.id))
-    .rangeRoundBands([aSec.x0, aSec.x1 - docWidth]);
-
-  var xRightScale = d3.scale.ordinal()
-    .domain(docData.map(d => d.id))
-    .rangeRoundBands([cSec.x0, cSec.x1 - docWidth]);
-
   // render layout
-  force.on("tick", function(e) {
+  (function applyTicker() {
+    // var xLeftScale = d3.scale.ordinal()
+    //   .domain(docData.map(d => d.id))
+    //   .rangeRoundBands([upperPanel.left, upperPanel.right - docWidth]);
+    //
+    // var xRightScale = d3.scale.ordinal()
+    //   .domain(docData.map(d => d.id))
+    //   .rangeRoundBands([cSec.left, cSec.right - docWidth]);
+
     function moveToPos(d, pos, alpha, energy) {
-        var affectSize = alpha * energy;
-        d.x = d.x + (pos.x - d.x) * affectSize;
-        d.y = d.y + (pos.y - d.y) * affectSize;
+      var affectSize = alpha * energy;
+      d.x = d.x + (pos.x - d.x) * affectSize;
+      d.y = d.y + (pos.y - d.y) * affectSize;
     }
 
-    var q = d3.geom.quadtree(tagData);
-    tagData.forEach(d => {
-      q.visit(collide(d, 10, 1));
-      var circle={x:width/2,y:height/2,r:diameter / 2};
-      var collision = rectCircleColliding(circle, d, state.init);
-      if (collision.bounce) {
-        // console.log("point in circle", collision);
-        d.x = d.x + (collision.x * d.x) * e.alpha;
-        d.y = d.y + (collision.y * d.y) * e.alpha;
-        // console.log("d.x", d.x, "d.y", d.y);
-      }
-      var maxHeight = height / 2 - d.height / 2 - 50;
-      boundMargin(d, width, maxHeight, margin);
-        // radial(d, e.alpha, diameter / 2, 1, {x: width / 2, y: height / 2});
+    var docWidth = d3.select(".doc").data()[0].width;
+    // var docHeight = d3.select(".doc").data()[0].width;
+
+    var xScale = d3.scale.ordinal()
+      .domain(docData.map(d => d.id))
+      .rangeRoundBands([centerPanel.left, centerPanel.right - docWidth]);
+
+
+    force.on("tick", function(e) {
+
+      var q = d3.geom.quadtree(tagData);
+      tagData.forEach(d => {
+        q.visit(collide(d, 10, 1));
+        var circle={x:width/2,y:height/2,r:diameter / 2};
+        var collision = rectCircleColliding(circle, d, state.init);
+        if (collision.bounce) {
+          // console.log("point in circle", collision);
+          d.x = d.x + (collision.x * d.x) * e.alpha;
+          d.y = d.y + (collision.y * d.y) * e.alpha;
+          // console.log("d.x", d.x, "d.y", d.y);
+        }
+        // var maxHeight = height / 2 - d.height / 2 - 50;
+        // boundY(d, height / 2 );
+        // boundMargin(d, width, maxHeight, margin);
+        boundSec(d, upperPanel);
+          // radial(d, e.alpha, diameter / 2, 1, {x: width / 2, y: height / 2});
+      });
+
+      // tag.each(moveToPos({x: width/2, y: height / 6 }, e.alpha, eW));
+
+      doc.each((d, i) => {
+        // var x = i % 2 === 0 ? xLeftScale(d.id) : xRightScale(d.id);
+        var x = xScale(d.id);
+        // var y = height / 2  - d.height / 2;
+        moveToPos(d, {x: x, y: centerPanel.cy - d.height / 2}, e.alpha, 1);
+      });
+
+      dot.each(d => {
+        var affectSize = e.alpha * 1;
+        d.x += (xTimeScale(d.date) - d.x) * affectSize;
+        d.y += (height - margin.bottom - 100 - d.y) * affectSize;
+      });
+
+      tag
+        .style("left", d => d.x + "px")
+        .style("top", d => d.y + "px");
+
+      doc
+        .style("left", d => d.x + "px")
+        .style("top", d => d.y + "px");
+
+      dot
+        .style("left", d => d.x + "px")
+        .style("top", d => d.y + "px");
+
+      link.attr("d", function(d) {
+        return "M" + d.source.x + "," + d.source.y
+            // + "S" + d[1].x + "," + d[1].y
+            + " " + d.target.x + "," + d.target.y;
+        // return "M" + d[0].x + "," + d[0].y
+        //     + "S" + d[1].x + "," + d[1].y
+        //     + " " + d[2].x + "," + d[2].y;
+      });
     });
-
-    // tag.each(moveToPos({x: width/2, y: height / 6 }, e.alpha, eW));
-
-    doc.each((d, i) => {
-      var x = i % 2 === 0 ? xLeftScale(d.id) : xRightScale(d.id);
-      var y = height / 2  - d.height / 2;
-      moveToPos(d, {x: x, y: y}, e.alpha, 1);
-
-      boundY(d, height / 2 );
-
-      var maxWidth = i % 2 === 0 ? maxLeftX : width - margin.right;
-      boundX(d, maxWidth);
-    });
-
-
-    dot.each(d => {
-      var affectSize = e.alpha * 1;
-      d.x += (xTimeScale(d.date) - d.x) * affectSize;
-      d.y += (height - margin.bottom - 100 - d.y) * affectSize;
-    });
-
-    tag
-      .style("left", d => d.x + "px")
-      .style("top", d => d.y + "px");
-
-    doc
-      .style("left", d => d.x + "px")
-      .style("top", d => d.y + "px");
-
-    dot
-      .style("left", d => d.x + "px")
-      .style("top", d => d.y + "px");
-
-    link.attr("d", function(d) {
-          return "M" + d.source.x + "," + d.source.y
-              // + "S" + d[1].x + "," + d[1].y
-              + " " + d.target.x + "," + d.target.y;
-          // return "M" + d[0].x + "," + d[0].y
-          //     + "S" + d[1].x + "," + d[1].y
-          //     + " " + d[2].x + "," + d[2].y;
-        });
-
-  });
+  })();
 
   force.start()
        .on("end", () => state.init = false);
@@ -635,6 +671,7 @@ const d3TagCloud = new function(){
                   if (d.type === "doc")
                     return d.selected ? (- 5000) : 0;
                   else return 0;
+                  // return 0;
                 })
                 .linkStrength(0)
                 .linkDistance(1000)
