@@ -43,7 +43,6 @@ var TagCloud = React.createClass({
       .entries(docs).map(d => {
                                 d.id = d.key;
                                 d.date = new Date(d.key);
-                                console.log("d.date", d);
                                 d.type = "date";
                                 return d;
                               });
