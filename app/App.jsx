@@ -72,6 +72,7 @@ const App = React.createClass({
             data={data2}/>
         </div>
 
+
       {/* <Venn */}
       {/*   width={this.props.width} */}
       {/*   height={this.props.height} */}
