@@ -72,6 +72,7 @@ const App = React.createClass({
   render: function() {
     return (
       <div className="cont">
+
           <Vis
             width={this.props.width}
             height={this.props.height}
