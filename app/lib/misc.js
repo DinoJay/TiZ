@@ -107,7 +107,7 @@ export function makeStyle(ui, color) {
     width:      ui.width,
     height:     ui.height,
     position:   "absolute",
-    background: color,
+    backgroundColor: color,
     opacity:    0.2
   };
 }

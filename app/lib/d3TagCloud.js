@@ -168,16 +168,20 @@ function collide(node, padding, energy) {
 }
 
 function create(el, props, state) {
-  const allData      = state.data,
-        tagData      = allData.filter(d => d.type === "tag"),
-        docData      = allData.filter(d => d.type === "doc"),
-        timeData     = allData.filter(d => d.type === "date"),
-        edges        = state.edges,
-        height       = props.height,
-        width        = props.width,
-        margin       = props.margin,
-        diameter     = 300,
-        panels       = props.panels,
+  const allData  = state.data,
+        tagData  = allData.filter(d => d.type === "tag"),
+        docData  = allData.filter(d => d.type === "doc"),
+        timeData = allData.filter(d => d.type === "date"),
+        edges    = state.edges,
+        height   = props.height,
+        width    = props.width,
+        margin   = props.margin,
+        diameter = 300,
+        panels   = props.panels,
+        div      = d3.select(el).select("#top-panel"),
+        svg      = d3.select("#svg"),
+        g        = svg.append("g"),
+
         // minRightX    = width / 2 + diameter / 2,
         // padding      = 40,
         force        = this.force;
@@ -190,10 +194,6 @@ function create(el, props, state) {
 
   state.drag = false;
   state.init = true;
-
-  const div = d3.select(el),
-        svg = d3.select("#svg"),
-        g = svg.append("g");
 
   console.log("props", props);
   console.log("state", state);
@@ -379,6 +379,7 @@ function create(el, props, state) {
       this.each(function(d){
         d.height = Math.ceil(this.getBoundingClientRect().height);
         d.width = Math.ceil(this.getBoundingClientRect().width);
+        // d.fixed = true;
       });
 
       this
@@ -516,9 +517,10 @@ function create(el, props, state) {
 
       doc.each((d, i) => {
         // var x = i % 2 === 0 ? xLeftScale(d.id) : xRightScale(d.id);
-        var x = xScale(d.id);
+        // var x = xScale(d.id);
         // var y = height / 2  - d.height / 2;
-        moveToPos(d, {x: x, y: panels.center.cy - d.height / 2}, e.alpha, 1);
+        moveToPos(d, {x: xScale(d.id), y: panels.center.cy - d.height / 2},
+                  e.alpha, 1);
       });
 
       dot.each(d => {
@@ -539,14 +541,14 @@ function create(el, props, state) {
         .style("left", d => d.x + "px")
         .style("top", d => d.y + "px");
 
-      // link.attr("d", function(d) {
-      //   return "M" + d.source.x + "," + d.source.y
-      //       // + "S" + d[1].x + "," + d[1].y
-      //       + " " + d.target.x + "," + d.target.y;
-      //   // return "M" + d[0].x + "," + d[0].y
-      //   //     + "S" + d[1].x + "," + d[1].y
-      //   //     + " " + d[2].x + "," + d[2].y;
-      // });
+      link.attr("d", function(d) {
+        return "M" + d.source.x + "," + d.source.y
+            // + "S" + d[1].x + "," + d[1].y
+            + " " + d.target.x + "," + d.target.y;
+        // return "M" + d[0].x + "," + d[0].y
+        //     + "S" + d[1].x + "," + d[1].y
+        //     + " " + d[2].x + "," + d[2].y;
+      });
     });
   })();
 
@@ -564,10 +566,10 @@ const d3TagCloud = new function(){
                   else return 0;
                   // return 0;
                 })
-                .linkStrength(0)
-                .linkDistance(1000)
-                .chargeDistance(200)
-                .gravity(0)
+                // .linkStrength(0.5)
+                // .linkDistance(1000)
+                // .chargeDistance(200)
+                // .gravity(0)
                 // .friction(0.4);
                 .theta(1);
   return {

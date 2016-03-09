@@ -6,11 +6,11 @@ import ReactDOM from "react-dom";
 
 // import Graph from "./components/Graph";
 // import Venn from "./components/Venn";
-import TagCloud from "./components/TagCloud";
+import Vis from "./components/Vis";
 // import DocPile from "./components/DocPile";
 // import Timeline from "./components/Timeline";
 
-import {makePanels, makeStyle} from "./lib/misc";
+import { makePanels, makeStyle } from "./lib/misc";
 
 require("./style/style.less");
 
@@ -40,8 +40,27 @@ const App = React.createClass({
                             this.props.margin, this.props.uiWidth,
                             this.props.padX, this.props.padY);
     console.log("panels", panels);
+
+    var styleTop = makeStyle(panels.top, "#2ECC40");
+    var styleCenter = makeStyle(panels.center, "#FF4136" );
+    var styleBottom = makeStyle(panels.bottom, "#0074D9" );
+
+    var styleTopUI = makeStyle(panels.topUI, "#2ECC40");
+    var styleCenterUI = makeStyle(panels.centerUI, "#FF4136" );
+    var styleBottomUI = makeStyle(panels.bottomUI, "#0074D9" );
+
+
+    var style = {
+                 top: styleTop,
+                 center: styleCenter,
+                 bottom: styleBottom,
+                 topUI: styleTopUI,
+                 centerUI: styleCenterUI,
+                 bottomUI: styleBottomUI
+                };
     return {
       panels: panels,
+      style: style,
       data: null
     };
   },
@@ -51,37 +70,15 @@ const App = React.createClass({
   },
 
   render: function() {
-    var panels = this.state.panels;
-    var styleTopUI = makeStyle(panels.topUI, "#2ECC40");
-    var styleCenterUI = makeStyle(panels.centerUI, "#FF4136" );
-    var styleBottomUI = makeStyle(panels.bottomUI, "#0074D9" );
-
-    console.log("styleTopUI", styleTopUI);
     return (
       <div className="cont">
-        <svg id="svg" height={900}></svg>
-        <div style={styleTopUI}> </div>
-        <div style={styleCenterUI}> </div>
-        <div style={styleBottomUI}> </div>
-        <div className="overlay">
-          <TagCloud
+          <Vis
             width={this.props.width}
             height={this.props.height}
             margin={this.props.margin}
+            style= {this.state.style}
             panels={this.state.panels}
             data={data2}/>
-        </div>
-
-
-      {/* <Venn */}
-      {/*   width={this.props.width} */}
-      {/*   height={this.props.height} */}
-      {/*   data={data2} */}
-      {/*   margin={this.props.margin} */}
-      {/* /> */}
-
-        <div id="canvas">
-        </div>
       </div>
     );
   },

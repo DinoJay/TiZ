@@ -4,7 +4,7 @@ import _ from "lodash";
 import ReactDOM from "react-dom";
 import d3 from "d3";
 
-var TagCloud = React.createClass({
+var Vis = React.createClass({
   getDefaultProps: function() {
     return {
       // width: 600,
@@ -67,6 +67,8 @@ var TagCloud = React.createClass({
     });
 
 
+
+
     return {
       data: data,
       edges: tagEdges.concat(dateEdges)
@@ -97,11 +99,28 @@ var TagCloud = React.createClass({
   render: function() {
     // TODO: margin convention
     return (
-<div id="tagCloud" style={{height: this.props.height,
-                           width: this.props.width}}>
+    <span>
+      <div className="overlay">
+        <div id="top-panel">
+          <div id="top-ui-bg" style={this.props.style.topUI}/>
+          <div id="top-panel-bg" style={this.props.style.top}/>
+        </div>
+
+        <div id="center-panel">
+          <div id="center-ui" style={this.props.style.centerUI}/>
+          <div id="center-panel-bg" style={this.props.style.center}/>
+        </div>
+
+        <div id="bottom-panel">
+          <div id="bottom-panel-bg" style={this.props.style.bottom}/>
+          <div id="bottom-ui" style={this.props.style.bottomUI}/>
+        </div>
+
       </div>
+      <svg id="svg" height={this.props.height}></svg>
+    </span>
     );
   }
 });
 
-export default TagCloud;
+export default Vis;
