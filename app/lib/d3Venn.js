@@ -269,12 +269,12 @@ function create(el, props, state) {
   // console.log("genData", genData);
   // console.log("props.wh", props.width, props.height);
   var foci = fociLayout()
-                .clusterSize((size) => 1 * size / 2)
+                .clusterSize((size) => 1 * size / 60)
                 .sets(state.data)
                 .size([props.width - 100, props.height - 100])
-                .charge(d => -800 * d.size -700)
-                .linkStrength(0.05)
-                .linkDistance(50)
+                .charge(d => - d.size / 8)
+                .linkStrength(1)
+                // .linkDistance(50)
                 .startForce();
 
 

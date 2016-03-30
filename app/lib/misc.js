@@ -102,12 +102,12 @@ export function makePanels(width, height, margin, uiWidth, padX, padY) {
 
 export function makeStyle(ui, color) {
   return {
-    top:        ui.top,
-    left:       ui.left,
-    width:      ui.width,
-    height:     ui.height,
-    position:   "absolute",
+    top:             ui.top,
+    left:            ui.left,
+    width:           ui.width,
+    height:          ui.height,
+    position:        "absolute",
     backgroundColor: color,
-    opacity:    0.2
+    opacity:         0.2
   };
 }

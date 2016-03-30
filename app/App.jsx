@@ -21,7 +21,7 @@ const App = React.createClass({
   getDefaultProps: function() {
     return {
       width: 1340,
-      height: 900,
+      height: 800,
       padX: 20,
       padY: 20,
       uiWidth: 200,
@@ -42,11 +42,11 @@ const App = React.createClass({
     console.log("panels", panels);
 
     var styleTop = makeStyle(panels.top, "#2ECC40");
-    var styleCenter = makeStyle(panels.center, "#FF4136" );
+    var styleCenter = makeStyle(panels.center, "white" );
     var styleBottom = makeStyle(panels.bottom, "#0074D9" );
 
     var styleTopUI = makeStyle(panels.topUI, "#2ECC40");
-    var styleCenterUI = makeStyle(panels.centerUI, "#FF4136" );
+    var styleCenterUI = makeStyle(panels.centerUI, "white" );
     var styleBottomUI = makeStyle(panels.bottomUI, "#0074D9" );
 
 
@@ -72,7 +72,6 @@ const App = React.createClass({
   render: function() {
     return (
       <div className="cont">
-
           <Vis
             width={this.props.width}
             height={this.props.height}

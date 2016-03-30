@@ -49,6 +49,7 @@ var Vis = React.createClass({
 
 
     var data = docs.concat(tagData, timeData);
+    data.forEach((d, i) => d.i = i);
 
     var tagEdges = _.flatten(tagData.map(target => target.values.map(source => {
       return {
@@ -100,6 +101,8 @@ var Vis = React.createClass({
     // TODO: margin convention
     return (
     <span>
+
+      <svg id="svg" height={this.props.height}></svg>
       <div className="overlay">
         <div id="top-panel">
           <div id="top-ui-bg" style={this.props.style.topUI}/>
@@ -117,7 +120,6 @@ var Vis = React.createClass({
         </div>
 
       </div>
-      <svg id="svg" height={this.props.height}></svg>
     </span>
     );
   }
